@@ -7,6 +7,8 @@ if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
 if (!requireNamespace("rpart", quietly = TRUE)) install.packages("rpart")
 if (!requireNamespace("rpart.plot", quietly = TRUE)) install.packages("rpart.plot")
 if (!requireNamespace("caret", quietly = TRUE)) install.packages("caret")
+if (!requireNamespace("stats", quietly = TRUE)) install.packages("stats")
+if (!requireNamespace("pROC", quietly = TRUE)) install.packages("pROC")
 
 library(plot.matrix)
 library(dbscan)
@@ -14,6 +16,8 @@ library(ggplot2)
 library(rpart)
 library(rpart.plot)
 library(caret)
+library(stats)
+library(pROC)
 
 plotfigure <<- function(row,dataset)
 {
@@ -41,63 +45,18 @@ dataset <<- read.csv("emnist-balanced-train.csv",sep=",",header = FALSE)
 plotfigure(13,dataset)
 plotfigure(4,dataset)
 
-#contar o número de elementos (linhas) no dataset
+# Contar o número de elementos (linhas) no dataset
 num_elementos_total <- nrow(dataset)
-# mostrar o número de elementos
+
+# Mostrar o número de elementos
 print(paste("Número de elementos no dataset:", num_elementos_total))
 
-#filtar o dataset apenas para os caracteres do meu grupo
+# Filtar o dataset apenas para os caracteres do meu grupo
 label_D <- 13
 label_F <- 15
 
-#filtrar o dataset para conter apenas os registros de "D" e "F"
+# Filtrar o dataset para conter apenas os registros de "D" e "F"
 filtered_dataset <- dataset[dataset$V1 %in% c(label_D, label_F), ]
-
-#v498, v526, v554
-
-# Agora, somamos os valores de cada coluna para "D" e "F" separadamente
-sums_D <- colSums(filtered_dataset[filtered_dataset$V1 == label_D, -1])
-sums_F <- colSums(filtered_dataset[filtered_dataset$V1 == label_F, -1])
-# Calculamos a diferença absoluta entre as somas
-differences <- abs(sums_D - sums_F)
-# Encontramos a posição com a maior diferença
-max_diff_position <- which.max(differences)
-# Imprimimos o resultado
-print(max_diff_position)
-
-
-#código para relatório
-#plotfigure(3,filtered_dataset)
-#print(filtered_dataset[554:554])
-#filtered_dataset[554:554] = 255
-
-
-#primeiro registro filtrado
-plotfigure(1, filtered_dataset)
-plotfigure(3, filtered_dataset)
-
-plotfigure(1264, filtered_dataset)
-plotfigure(1268, filtered_dataset)
-
-plotfigure(1764, filtered_dataset)
-plotfigure(1768, filtered_dataset)
-
-plotfigure(2264, filtered_dataset)
-plotfigure(2268, filtered_dataset)
-
-plotfigure(3264, filtered_dataset)
-plotfigure(3268, filtered_dataset)
-
-#contar o número de elementos (linhas) no dataset filtrado
-num_elementos <- nrow(filtered_dataset)
-#mostrar o número de elementos
-print(paste("Número de elementos no dataset filtrado:", num_elementos))
-
-#dividir dados em conjunto de treino e teste
-set.seed(123) # Para reprodutibilidade
-trainIndex <- createDataPartition(filtered_dataset$V1, p = .8, list = FALSE, times = 1)
-data_train <- filtered_dataset[trainIndex, ]
-data_test <- filtered_dataset[-trainIndex, ]
 
 #criar modelo de árvore de decisão
 modelo_arvore <- rpart(V1 ~ ., data = filtered_dataset, method = "class")
@@ -106,24 +65,61 @@ modelo_arvore <- rpart(V1 ~ ., data = filtered_dataset, method = "class")
 rpart.plot(modelo_arvore, main="Árvore de Decisão - 'D' vs 'F'")
 
 # checks the accuracy of the model
-prediction <- predict(modelo_arvore, data_test, type='class')
-check <- mean(prediction==filtered_dataset$V1)
-check
+data_test <<- read.csv("emnist-balanced-test.csv",sep=",",header = FALSE)
 
-#identificar o pixel mais importante
+# Filtrar o data_test para conter apenas os registros de "D" e "F"
+filtered_data_test <- data_test[data_test$V1 %in% c(label_D, label_F), ]
+
+# Efetuar a previsão
+prediction_probs <- predict(modelo_arvore, newdata = filtered_data_test, type = "prob")[, as.character(label_D)]
+
+# Gerar a curva ROC
+roc_obj <- roc(filtered_data_test$V1, prediction_probs)
+# Mostrar a curva ROC
+plot(roc_obj)
+# Encontrar o threshold ótimo usando o critério Youden
+coords(roc_obj, "best", ret = "threshold", best.method = "youden")
+
+# Definir o threshold de probabilidade
+threshold <- 0.5 # Obtido da curva ROC e arredondado 
+# Fica mais bonito e dá o mesmo valor na matriz de confusão
+
+# Converter probabilidades em previsões binárias com base no threshold
+predicted_classes <- ifelse(prediction_probs > threshold, label_D, label_F)
+# Criar a matriz de confusão
+conf_matrix <- table(Predicted = predicted_classes, Actual = filtered_data_test$V1)
+# Mostrar a matriz de confusão
+conf_matrix_detailed <- confusionMatrix(as.factor(predicted_classes), as.factor(filtered_data_test$V1))
+print(conf_matrix_detailed)
+
+# 10 PIXEIS MAIS IMPORTANTES
+# Identificar os 10 pixeis mais importantes
 importancia <- as.data.frame(modelo_arvore$variable.importance)
 names(importancia) <- c("Importância")
 importancia <- importancia[order(-importancia$Importância), , drop = FALSE]
-print(head(importancia, 35))
+pixeis_mais_importantes <- head(importancia, 10)
+print(pixeis_mais_importantes)
+print(rownames(pixeis_mais_importantes))
+# Extrair apenas os números dos nomes dos pixeis mais importantes e convertê-los para valores inteiros
+nomes_pixeis_inteiros <- as.integer(gsub("V", "", rownames(pixeis_mais_importantes)))
+# Mostrar os nomes dos pixeis mais importantes como valores inteiros
+print(nomes_pixeis_inteiros)
 
-#criar um vetor de rótulos correspondentes a cada linha no dataset
-character_labels <- ifelse(filtered_dataset$V1 == label_D, "D", "F")
 
-boxplot(as.matrix(filtered_dataset[,499:499]) ~ character_labels, 
-        main="Distribuição dos Valores dos Pixels para 'D' e 'F'", 
-        col=c("red", "blue"), 
-        las=2,
-        xlab="Letras",
-        ylab="Intensidade dos pixeis",
-        #outline=FALSE
-)
+# Mostrar BOXPLOT para os 10 pixeis
+# Configuração do tamanho do gráfico e centralização
+par(mfrow=c(1,1), mar=c(3,3,1,1))
+# Loop para criar os boxplots para cada pixel mais importante
+for (pixel in nomes_pixeis_inteiros) {
+  # Criar um vetor de rótulos correspondentes a cada linha no dataset
+  character_labels <- ifelse(filtered_dataset$V1 == label_D, "D", "F")
+  # Plot do boxplot
+  boxplot(as.matrix(filtered_dataset[, pixel]) ~ character_labels, 
+          main=paste("Distribuição dos Valores dos Pixels para 'D' e 'F' (Pixel: V", pixel, ")"), 
+          col=c("red", "blue"), 
+          las=2,
+          xlab="Letras",
+          ylab="Intensidade dos pixeis",
+          #outline=FALSE
+  )
+}
