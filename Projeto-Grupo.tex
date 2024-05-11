@@ -1,0 +1,326 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Projeto},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Projeto}
+\author{}
+\date{\vspace{-2.5em}2024-04-14}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{requireNamespace}\NormalTok{(}\StringTok{"plot.matrix"}\NormalTok{, }\AttributeTok{quietly =} \ConstantTok{TRUE}\NormalTok{)) }\FunctionTok{install.packages}\NormalTok{(}\StringTok{"plot.matrix"}\NormalTok{)}
+\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{requireNamespace}\NormalTok{(}\StringTok{"dbscan"}\NormalTok{, }\AttributeTok{quietly =} \ConstantTok{TRUE}\NormalTok{)) }\FunctionTok{install.packages}\NormalTok{(}\StringTok{"dbscan"}\NormalTok{)}
+\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{requireNamespace}\NormalTok{(}\StringTok{"ggplot2"}\NormalTok{, }\AttributeTok{quietly =} \ConstantTok{TRUE}\NormalTok{)) }\FunctionTok{install.packages}\NormalTok{(}\StringTok{"ggplot2"}\NormalTok{)}
+\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{requireNamespace}\NormalTok{(}\StringTok{"rpart"}\NormalTok{, }\AttributeTok{quietly =} \ConstantTok{TRUE}\NormalTok{)) }\FunctionTok{install.packages}\NormalTok{(}\StringTok{"rpart"}\NormalTok{)}
+\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{requireNamespace}\NormalTok{(}\StringTok{"rpart.plot"}\NormalTok{, }\AttributeTok{quietly =} \ConstantTok{TRUE}\NormalTok{)) }\FunctionTok{install.packages}\NormalTok{(}\StringTok{"rpart.plot"}\NormalTok{)}
+\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{requireNamespace}\NormalTok{(}\StringTok{"caret"}\NormalTok{, }\AttributeTok{quietly =} \ConstantTok{TRUE}\NormalTok{)) }\FunctionTok{install.packages}\NormalTok{(}\StringTok{"caret"}\NormalTok{)}
+
+\FunctionTok{library}\NormalTok{(plot.matrix)}
+\FunctionTok{library}\NormalTok{(dbscan)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(rpart)}
+\FunctionTok{library}\NormalTok{(rpart.plot)}
+\FunctionTok{library}\NormalTok{(caret)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+
+
+\NormalTok{plotfigure }\OtherTok{\textless{}\textless{}{-}} \ControlFlowTok{function}\NormalTok{(row,dataset)}
+\NormalTok{\{}
+\NormalTok{  X }\OtherTok{=} \ConstantTok{NULL}
+  \ControlFlowTok{if}\NormalTok{(}\SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(dataset)))}
+\NormalTok{  \{}
+\NormalTok{    X }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(dataset[row,}\DecValTok{2}\SpecialCharTok{:}\DecValTok{785}\NormalTok{],}\AttributeTok{nrow=}\DecValTok{28}\NormalTok{))}
+\NormalTok{  \}}
+  \ControlFlowTok{else}
+\NormalTok{  \{}
+\NormalTok{    X }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(dataset[row,}\DecValTok{2}\SpecialCharTok{:}\DecValTok{785}\NormalTok{],}\AttributeTok{nrow=}\DecValTok{28}\NormalTok{))}
+\NormalTok{  \}}
+\NormalTok{  m1 }\OtherTok{=} \FunctionTok{data.matrix}\NormalTok{(X)}
+  \FunctionTok{plot}\NormalTok{(m1, }\AttributeTok{cex=}\FloatTok{0.5}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{introduuxe7uxe3o}{%
+\section{Introdução}\label{introduuxe7uxe3o}}
+
+O presente trabalho tem como objetivo o desenvolvimento de um modelo que
+
+A base de dados para o desenvolvimento do trabalho contém imagens de
+caracteres alfanuméricos manuscritos, incluindo letras maiúsculas e
+minúsculas, além de dígitos de 0 a 9. Cada imagem tem uma resolução de
+28 × 28 = 784 pixeis. O trabalho será realizado para as letras D e F.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{train\_data }\OtherTok{\textless{}\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"emnist{-}balanced{-}train.csv"}\NormalTok{,}\AttributeTok{sep=}\StringTok{","}\NormalTok{,}\AttributeTok{header =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{test\_data }\OtherTok{\textless{}\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"emnist{-}balanced{-}test.csv"}\NormalTok{,}\AttributeTok{sep=}\StringTok{","}\NormalTok{,}\AttributeTok{header =} \ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Nas figuras seguintes pode observar-se algumas das possíveis
+representações da letra D e da letra F.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+
+\FunctionTok{plotfigure}\NormalTok{(}\DecValTok{14}\NormalTok{,train\_data)}
+\FunctionTok{plotfigure}\NormalTok{(}\DecValTok{60}\NormalTok{,train\_data)}
+\FunctionTok{plotfigure}\NormalTok{(}\DecValTok{13}\NormalTok{,train\_data)}
+\FunctionTok{plotfigure}\NormalTok{(}\DecValTok{4}\NormalTok{,train\_data)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Projeto-Grupo_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+Dado que se pretende apenas trabalhar com as letras D e F, reduziu-se a
+base de dados inicial para que esta apenas contenha as letras D e F.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{label\_D }\OtherTok{\textless{}{-}} \DecValTok{13}
+\NormalTok{label\_F }\OtherTok{\textless{}{-}} \DecValTok{15}
+
+\NormalTok{filtered\_train\_data }\OtherTok{\textless{}{-}}\NormalTok{ train\_data[train\_data}\SpecialCharTok{$}\NormalTok{V1 }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(label\_D, label\_F), ]}
+\NormalTok{filtered\_test\_data }\OtherTok{\textless{}{-}}\NormalTok{ test\_data[test\_data}\SpecialCharTok{$}\NormalTok{V1 }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(label\_D, label\_F), ]}
+
+\FunctionTok{head}\NormalTok{(filtered\_train\_data[, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{5}\NormalTok{], }\DecValTok{5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    V1 V2 V3 V4 V5
+## 4  15  0  0  0  0
+## 13 15  0  0  0  0
+## 14 13  0  0  0  0
+## 53 15  0  0  0  0
+## 73 13  0  0  0  0
+\end{verbatim}
+
+\hypertarget{anuxe1lise-exploratuxf3ria}{%
+\section{Análise Exploratória}\label{anuxe1lise-exploratuxf3ria}}
+
+Com o objetivo de distinguir as duas letras, é necessário determinar uma
+zona de relevância, ou seja, o conjunto de pixeis que determinam com
+elevada probabilidade se na imagem está representada a letra D ou a
+letra F.
+
+Com este intuito foi construída uma árvore de decisão, representada na
+figura seguinte.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+
+\NormalTok{modelo\_arvore }\OtherTok{\textless{}{-}} \FunctionTok{rpart}\NormalTok{(V1 }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ filtered\_train\_data, }\AttributeTok{method =} \StringTok{"class"}\NormalTok{)}
+
+\FunctionTok{rpart.plot}\NormalTok{(modelo\_arvore, }\AttributeTok{main=}\StringTok{"Árvore de Decisão {-} \textquotesingle{}D\textquotesingle{} vs \textquotesingle{}F\textquotesingle{}"}\NormalTok{,}
+           \AttributeTok{box.palette =} \StringTok{"RdBu"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Projeto-Grupo_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+A árvore de decisão indica como pixel mais influente na diferenciação
+das letras o pixel 554. Se o valor do pixel for superior ou igual a 1,
+classifica-se a imagem como D. No entanto, se o pixel tiver um valor
+inferior a 1, o pixel 640 passa a ter influência para classificar a
+imagem. Isto significa que o pixel 554 é suficiente para classificar a
+imagem como D, mas não para classificar a imagem como F. A classificação
+da imagem como a letra F passa por analisar os pixeis 554, 640 e 496.
+
+Seguidamente, estão representados os gráficos das densidades para os
+valores do pixel 554, para a letra D e para a letra F. A representação
+da letra D no gráfico é feita pela cor azul, enquanto que a letra F é
+exibida pela cor vermelha. A linha vertical a tracejado indica quando o
+valor do pixel é igual a 1. É visível que para imagens da letra F,
+existe uma predisposição maior para que o valores do pixel 554 sejam
+menores, enquanto que, para imagens da letra D, o pixel assume vários
+valores. (\emph{comentar com árvore})
+
+\includegraphics{Projeto-Grupo_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+Pela caixa-de-bigodes seguinte, é perceptível que para valores do pixel
+554 inferiores a 1, existe uma distinção entre a letra D e F. Podemos
+observar que para as imagens da letra F, é mais comum o pixel 554
+apresentar valores inferiores a 1 e para as imagens da letra D, é mais
+comum o pixel 554 apresentar valores superiores a 1.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{boxplot}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(filtered\_train\_data[,}\DecValTok{554}\SpecialCharTok{:}\DecValTok{554}\NormalTok{]) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ character\_labels,}
+        \AttributeTok{col=}\FunctionTok{c}\NormalTok{(}\StringTok{"\#FF9966"}\NormalTok{, }\StringTok{"\#996633"}\NormalTok{), }
+        \AttributeTok{las=}\DecValTok{2}\NormalTok{,}
+        \AttributeTok{xlab=}\StringTok{"Letras"}\NormalTok{,}
+        \AttributeTok{ylab=}\StringTok{"Intensidade dos pixeis"}\NormalTok{,}
+        \CommentTok{\#outline=FALSE}
+\NormalTok{)}
+\FunctionTok{title}\NormalTok{(}\AttributeTok{main =} \StringTok{"Distribuição dos Valores dos Pixels para \textquotesingle{}D\textquotesingle{} e \textquotesingle{}F\textquotesingle{}"}\NormalTok{, }\AttributeTok{cex.main =} \FloatTok{0.7}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Projeto-Grupo_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+
+\FunctionTok{ggplot}\NormalTok{(combined\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ V640, }\AttributeTok{fill =}\NormalTok{ group)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Valor do Pixel"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Densidade"}\NormalTok{, }\AttributeTok{title =} \StringTok{"Gráfico de Dendidade para o Pixel 554"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{guides}\NormalTok{(}\AttributeTok{fill =} \FunctionTok{guide\_legend}\NormalTok{(}\AttributeTok{title =} \StringTok{"Grupo"}\NormalTok{)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{1}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{0.25}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Projeto-Grupo_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}}
+
+\FunctionTok{ggplot}\NormalTok{(combined\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ V496, }\AttributeTok{fill =}\NormalTok{ group)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Valor do Pixel"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Densidade"}\NormalTok{, }\AttributeTok{title =} \StringTok{"Gráfico de Dendidade para o Pixel 554"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{guides}\NormalTok{(}\AttributeTok{fill =} \FunctionTok{guide\_legend}\NormalTok{(}\AttributeTok{title =} \StringTok{"Grupo"}\NormalTok{)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{1}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{0.1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Projeto-Grupo_files/figure-latex/unnamed-chunk-8-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sums\_D }\OtherTok{\textless{}{-}} \FunctionTok{colSums}\NormalTok{(filtered\_train\_data[filtered\_train\_data}\SpecialCharTok{$}\NormalTok{V1 }\SpecialCharTok{==}\NormalTok{ label\_D, }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])}
+\NormalTok{sums\_F }\OtherTok{\textless{}{-}} \FunctionTok{colSums}\NormalTok{(filtered\_train\_data[filtered\_train\_data}\SpecialCharTok{$}\NormalTok{V1 }\SpecialCharTok{==}\NormalTok{ label\_F, }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])}
+
+\NormalTok{differences }\OtherTok{\textless{}{-}} \FunctionTok{abs}\NormalTok{(sums\_D }\SpecialCharTok{{-}}\NormalTok{ sums\_F)}
+
+
+\NormalTok{matrix\_dim }\OtherTok{\textless{}{-}} \DecValTok{28}
+\NormalTok{differences\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(differences, }\AttributeTok{nrow =}\NormalTok{ matrix\_dim, }\AttributeTok{ncol =}\NormalTok{ matrix\_dim)}
+
+
+\FunctionTok{image}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{28}\NormalTok{, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{28}\NormalTok{, differences\_matrix,}
+      \AttributeTok{col =} \FunctionTok{cm.colors}\NormalTok{(}\DecValTok{20}\NormalTok{),}
+      \AttributeTok{xlab =} \StringTok{"Pixeis"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Pixeis"}\NormalTok{,}
+      \AttributeTok{main =} \StringTok{"Diferença dos Valores dos Pixeis"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Projeto-Grupo_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+\end{document}

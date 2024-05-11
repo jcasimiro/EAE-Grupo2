@@ -123,3 +123,8 @@ for (pixel in nomes_pixeis_inteiros) {
           #outline=FALSE
   )
 }
+
+# Aplicar o PCA
+filtered_dataset_pca <- prcomp(filtered_dataset)
+# Ver o resultado do PCA
+summary(filtered_dataset_pca)
