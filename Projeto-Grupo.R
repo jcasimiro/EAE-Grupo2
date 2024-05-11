@@ -105,6 +105,14 @@ nomes_pixeis_inteiros <- as.integer(gsub("V", "", rownames(pixeis_mais_important
 # Mostrar os nomes dos pixeis mais importantes como valores inteiros
 print(nomes_pixeis_inteiros)
 
+# 10 PIXEIS MAIS IMPORTANTES
+# Identificar os 10 pixeis mais importantes para a letra D
+importancia_D <- as.data.frame(importancia[filtered_dataset$V1 == label_D, ])
+names(importancia_D) <- c("Importância")
+importancia_D <- importancia_D[order(-importancia_D$Importância), , drop = FALSE]
+pixeis_mais_importantes_D <- head(importancia_D, 10)
+print(pixeis_mais_importantes_D)
+print(rownames(pixeis_mais_importantes_D))
 
 # Mostrar BOXPLOT para os 10 pixeis
 # Configuração do tamanho do gráfico e centralização
@@ -123,6 +131,24 @@ for (pixel in nomes_pixeis_inteiros) {
           #outline=FALSE
   )
 }
+
+# ****************************************************************************************************************
+
+# Aplicar o DBSCAN
+# Definir parâmetros DBSCAN
+eps <- 0.5  # Raio de vizinhança
+minPts <- 5  # Número mínimo de pontos por cluster
+# Agrupar dados
+# Aplicar DBSCAN ao filtered_dataset
+agrupamentos_dbscan <- dbscan(filtered_dataset[, c(label_D)], eps = eps, minPts = minPts)
+# Adicionar rótulos de cluster aos dados originais
+filtered_dataset$cluster_dbscan <- agrupamentos_dbscan
+# Verificar a distribuição dos clusters
+table(filtered_dataset$cluster_dbscan)
+# Criar gráfico de dispersão
+ggplot(filtered_dataset, aes(x = V2, y = V3, color = cluster_dbscan)) +
+  geom_point() +
+  labs(title = "Clusters de letras DBSCAN")
 
 # Aplicar o PCA
 filtered_dataset_pca <- prcomp(filtered_dataset)
