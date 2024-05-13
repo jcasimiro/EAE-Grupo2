@@ -1,4 +1,3 @@
-@ -0,0 +1,333 @@
 # No menu do RStudio:
 # selecione Session > Set Working Directory > Choose Directory...
 
