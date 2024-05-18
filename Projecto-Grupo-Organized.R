@@ -264,13 +264,13 @@ test_labels_pca <- as.factor(filtered_test_data$V1)
 train_data_pca <- train_data_pca[, apply(train_data_pca, 2, var) != 0]
 train_data_pca = prcomp(train_data_pca, scale. = TRUE)
 
-#explained_variance <- train_data_pca$sdev^2 / sum(train_data_pca$sdev^2) * 100
-#print(paste0("Variância explicada por cada componente: ", round(explained_variance, 2), "%"))
-#fviz_eig(train_data_pca, choice=c("variance"), ggtheme = theme_minimal(), title='Variância explicada')
+explained_variance <- train_data_pca$sdev^2 / sum(train_data_pca$sdev^2) * 100
+print(paste0("Variância explicada por cada componente: ", round(explained_variance, 2), "%"))
+fviz_eig(train_data_pca, choice=c("variance"), ggtheme = theme_minimal(), title='Variância explicada')
 
 train_data_pca_df <- data.frame(V1 = test_labels_pca, train_data_pca$x)
 
-#names(train_data_pca$center)
+names(train_data_pca$x)
 
 decision_tree_model_pca <-
   rpart(V1 ~ .,
