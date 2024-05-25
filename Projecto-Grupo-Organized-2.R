@@ -23,9 +23,10 @@ if (!requireNamespace("foreach", quietly = TRUE))
   install.packages("foreach")
 if (!requireNamespace("doParallel", quietly = TRUE)) 
   install.packages("doParallel")
-if (!requireNamespace("doParallel", quietly = TRUE)) 
+if (!requireNamespace("factoextra", quietly = TRUE)) 
   install.packages("factoextra")
-
+if (!requireNamespace("cluster", quietly = TRUE)) 
+  install.packages("cluster")
 
 library(plot.matrix)
 library(dbscan)
@@ -39,6 +40,7 @@ library(e1071)
 library(foreach)
 library(doParallel)
 library(factoextra)
+library(cluster)
 
 # Function to show an image
 plotfigure <<- function(row, dataset)
@@ -327,3 +329,54 @@ test_data_svm_pca <- filtered_test_data_pca_split
 test_labels_svm_pca <- as.factor(filtered_test_data_split$V1)
 
 execute_svm(train_data_svm_pca, train_labels_svm_pca, test_data_svm_pca, test_labels_svm_pca)
+
+# ***** QUESTION 8 *****
+
+# Filter the first two principal components
+pca_data <- train_data_pca$x[, 1:2]
+
+# Hierarchical cluster analysis
+hc <- hclust(dist(pca_data), method = "complete")
+
+# Plot the dendrogram
+plot(hc, main = "Dendrograma - Clustering Hierárquico", xlab = "", sub = "")
+
+# Calculate the optimal number of clusters using the silhouette method
+silhouette_scores <-
+  fviz_nbclust(
+    pca_data,
+    kmeans,
+    method = "silhouette",
+    k.max = 10,
+    diss = dist(pca_data),
+    nboot = 100
+  )
+
+# Extract silhouette information
+silhouette_info <- silhouette_scores$data
+
+# Find the row with the maximum silhouette score
+optimal_row <- silhouette_info[which.max(silhouette_info$y), ]
+
+# Extract the optimal number of clusters and silhouette score
+optimal_clusters <- optimal_row$clusters
+silhouette_avg <- optimal_row$y
+
+# Perform k-means cluster analysis with the optimal number of clusters
+kmeans_result <- kmeans(pca_data, centers = 4, nstart = 25)
+
+# Calculate silhouette information
+sil <- silhouette(kmeans_result$cluster, dist(pca_data))
+
+# Plot the silhouette graph
+fviz_silhouette(sil)
+
+# Calculate the silhouette score
+print(paste("Optimal Number of Clusters:", optimal_clusters))
+print(paste("Silhouette Score:", silhouette_avg))
+
+# Compare the predicted clusters with the true labels
+comparison_df <-
+  data.frame(True_Labels = filtered_test_data$V1,
+             Predicted_Clusters = kmeans_result$cluster[1:nrow(filtered_test_data)])
+print(head(comparison_df, 20))
