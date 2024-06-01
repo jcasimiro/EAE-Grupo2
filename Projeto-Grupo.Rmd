@@ -1,20 +1,39 @@
 ---
 title: "Projeto"
-author: ''
+author: ""
 date: "2024-04-14"
-output:
-  word_document: default
-  html_document: default
-  pdf_document: default
+output: html_document
 ---
 
 ```{r message=FALSE, warning=FALSE}
-if (!requireNamespace("plot.matrix", quietly = TRUE)) install.packages("plot.matrix")
-if (!requireNamespace("dbscan", quietly = TRUE)) install.packages("dbscan")
-if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
-if (!requireNamespace("rpart", quietly = TRUE)) install.packages("rpart")
-if (!requireNamespace("rpart.plot", quietly = TRUE)) install.packages("rpart.plot")
-if (!requireNamespace("caret", quietly = TRUE)) install.packages("caret")
+if (!requireNamespace("plot.matrix", quietly = TRUE))
+  install.packages("plot.matrix")
+if (!requireNamespace("dbscan", quietly = TRUE))
+  install.packages("dbscan")
+if (!requireNamespace("ggplot2", quietly = TRUE))
+  install.packages("ggplot2")
+if (!requireNamespace("rpart", quietly = TRUE))
+  install.packages("rpart")
+if (!requireNamespace("rpart.plot", quietly = TRUE))
+  install.packages("rpart.plot")
+if (!requireNamespace("caret", quietly = TRUE))
+  install.packages("caret")
+if (!requireNamespace("stats", quietly = TRUE))
+  install.packages("stats")
+if (!requireNamespace("pROC", quietly = TRUE))
+  install.packages("pROC")
+if (!requireNamespace("e1071", quietly = TRUE))
+  install.packages("e1071")
+if (!requireNamespace("foreach", quietly = TRUE)) 
+  install.packages("foreach")
+if (!requireNamespace("library(dplyr)", quietly = TRUE)) 
+  install.packages("library(dplyr)")
+if (!requireNamespace("factoextra", quietly = TRUE)) 
+  install.packages("factoextra")
+if (!requireNamespace("cluster", quietly = TRUE)) 
+  install.packages("cluster")
+if (!requireNamespace("stats", quietly = TRUE)) 
+  install.packages("stats")
 
 library(plot.matrix)
 library(dbscan)
@@ -22,7 +41,16 @@ library(ggplot2)
 library(rpart)
 library(rpart.plot)
 library(caret)
+library(stats)
+library(pROC)
+library(e1071)
+library(foreach)
+library(doParallel)
 library(dplyr)
+library(naivebayes)
+library(factoextra)
+library(cluster)
+library(stats)
 
 
 plotfigure <<- function(row,dataset)
@@ -52,7 +80,7 @@ train_data <<- read.csv("emnist-balanced-train.csv",sep=",",header = FALSE)
 test_data <<- read.csv("emnist-balanced-test.csv",sep=",",header = FALSE)
 ```
 
-Nas figuras seguintes pode observar-se algumas das possíveis representações da letra D e da letra F.
+Nas figuras seguintes estão possíveis representações a letra D e a letra F.
 
 ```{r}
 par(mfrow = c(2, 2))
@@ -75,24 +103,84 @@ filtered_test_data <- test_data[test_data$V1 %in% c(label_D, label_F), ]
 head(filtered_train_data[, 1:5], 5)
 ```
 
-# Análise Exploratória
+```{r}
+filtered_train_data$V1 <-as.factor(filtered_train_data$V1)
+filtered_test_data$V1 <-as.factor(filtered_test_data$V1)
+```
 
-Com o objetivo de distinguir as duas letras, é necessário determinar uma zona de relevância, ou seja, o conjunto de pixeis que determinam com elevada probabilidade se na imagem está representada a letra D ou a letra F.
+# Exercício 1
 
-Com este intuito foi construída uma árvore de decisão, representada na figura seguinte.
+Com o objetivo de distinguir duas letras, é necessário determinar uma zona de relevância, ou seja, um conjunto de pixeis que determinam com uma probabilidade elevada se na imagem está representada a letra D ou a letra F.
+
+Com este intuito foi construída uma árvore de decisão. A árvore de decisão, da figura seguinte, é construída através da função *rpart*. Esta utiliza o Gini index, $1-\sum_{i=1}^c p_i^2(t)$, para determinar as partições da árvore, com a finalidade de minimizar as impurezas dos nós.
 
 ```{r}
 set.seed(123)
-
 modelo_arvore <- rpart(V1 ~ ., data = filtered_train_data, method = "class")
-
-rpart.plot(modelo_arvore, main="Árvore de Decisão - 'D' vs 'F'",
-           box.palette = "RdBu")
+rpart.plot(modelo_arvore, 
+           main="Árvore de Decisão - 'D' vs 'F'",
+           box.palette = "RdBu",
+           type = 2,
+           extra = 104)
 ```
 
-A árvore de decisão indica como pixel mais influente na diferenciação das letras o pixel 554. Se o valor do pixel for superior ou igual a 1, classifica-se a imagem como D. No entanto, se o pixel tiver um valor inferior a 1, o pixel 640 passa a ter influência para classificar a imagem. Isto significa que o pixel 554 é suficiente para classificar a imagem como D, mas não para classificar a imagem como F. A classificação da imagem como a letra F passa por analisar os pixeis 554, 640 e 496.
+Através do gráfico seguinte, averigua-se que o número de divisões da árvore que minimiza o erro de validação é igual a 4, para um parâmetro de complexidade igual a $cp=0.018$. Este parâmetro foi determinado através da validação cruzada 10-fold. Pelo gráfico concluímos que o modelo não está sobreajustado e obteve-se o modelo mais parcimonioso.
 
-Seguidamente, estão representados os gráficos das densidades para os valores do pixel 554, para a letra D e para a letra F. A representação da letra D no gráfico é feita pela cor azul, enquanto que a letra F é exibida pela cor vermelha. A linha vertical a tracejado indica quando o valor do pixel é igual a 1. É visível que para imagens da letra F, existe uma predisposição maior para que o valores do pixel 554 sejam menores, enquanto que, para imagens da letra D, o pixel assume vários valores. (*comentar com árvore*)
+```{r}
+plotcp(modelo_arvore, upper = "splits")
+```
+
+O modelo da árvore de decisão obteu 5 regiões, que podem ser escritas como $R_1=\{V554\geq1\},\;R_2=\{V554<1,V640\geq1\},\;R_3=\{V554<1,V640<1,V496\geq146\}, \; R_4=\{V554<1,V640<1,V496<46,V604<1\}\;R_4=\{V554<1,V640<1,V496<46,V604\geq1\}$. A região $R1$ dita o pixel mais influente na diferenciação das letras. Para uma valor do pixel 554 maior que 1, o modelo classifica correctamente a imagem como sendo a letra D. A região $R_2$ classifica a imagem como sendo a letra D. A região $R_3$ classifica a imagem como sendo a letra F. A região $R_4$ classifica a imagem como sendo a letra F. Finalmente, a região $R_5$ classifica a imagem como sendo a letra D.
+
+Seguidamente, está representada a curva ROC da árvore de decisão ajustada.
+
+```{r message=FALSE, warning=FALSE}
+prediction_probs <- predict(modelo_arvore, newdata = filtered_test_data, type = "prob")[, as.character(label_D)]
+
+# Curva ROC
+roc_obj <- roc(filtered_test_data$V1, prediction_probs)
+plot(roc_obj,
+     axes=FALSE,
+     print.auc.col = "#CC6699",
+     col = "#CC6699",
+     ylab = "Sensibilidade",
+     xlab = "1-Especificidade")
+
+axis(side = 2, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), 
+     labels = expression(0, 0.2, 0.4, 0.6, 0.8, 1), cex.axis = 1, pos=1)
+
+axis(side = 1, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), 
+     labels = expression(1, 0.8, 0.6, 0.4, 0.2, 0),
+     pos=-0.001,
+     cex.axis = 1)
+```
+
+Dada a curva ROC, observa-se que existe uma taxa de verdadeiros positivos alta e uma taxa de falsos positivos baixa. Seguidamente, será obtida a matriz de confusão de modo a obter os valores da sensibilidade e da especificidade, tal como a precisão do modelo.
+
+O ponto de corte relativo ao vetor de probabilidades estimadas que maximiza a especificidade e a sensibilidade é aproximadamente 0.5.
+
+```{r}
+coords(roc_obj, "best", ret = "threshold", best.method = "youden")
+```
+
+Para um ponto de corte igual a 0.5, a matriz de confusão para a árvore de decisão está representada seguidamente.
+
+```{r}
+threshold <- 0.5 
+predicted_classes <- ifelse(prediction_probs > threshold, label_D, label_F)
+
+# Matriz de Confusão
+conf_matrix <- table(Predicted = predicted_classes, Actual = filtered_test_data$V1)
+
+conf_matrix_detailed <- confusionMatrix(as.factor(predicted_classes), as.factor(filtered_test_data$V1))
+print(conf_matrix_detailed)
+```
+
+Obteve-se uma precisão igual a 0.955, uma sensibilidade igual a 0.9575 e uma especificidade igual a 0.9525. Os três valores são altos, como seria de esperar dada a curva ROC obtida. Pode concluir-se que o modelo é um bom ajuste aos dados, pelo que, este tem um bom desempenho na distinção entre as letras D e F. É de notar que era possível obter uma árvore de decisão com uma precisão 0.005 maior, no entanto, devido à dimensão da diferença entre as precisões, optou-se por uma árvore com uma complexidade menor.
+
+Conclui-se que, pela árvore de decisão, o conjunto de pixeis que determinaram com uma probabilidade elevada se na imagem está representada a letra D ou a letra F são os pixeis 554, 640, 496 e 604.
+
+Seguidamente estão representados os gráficos das densidades para os valores do pixel 554, para a letra D, cujo gráfico está representado a roxo, e para a letra F, cujo gráfico está representado a vermelho. A linha a tracejado indica quando o valor do pixel é igual a 1. É visível que, para imagens da letra F, existe uma predisposição maior para que o valores do pixel 554 sejam menores, enquanto que, para imagens da letra D, o pixel assume um intervalo de valores muito grande. Dado que não existem muitas imagens cuja letra é a letra F, para valores altos do pixel 554, a árvore de decisão consegue classificar, para valores superiores a 1, que a imagem é a letra D.
 
 ```{r echo=FALSE}
 par(mfrow = c(1, 2))
@@ -120,9 +208,9 @@ character_labels <- ifelse(filtered_train_data$V1 == label_D, "D", "F")
 
 ```
 
-Pela caixa-de-bigodes seguinte, é perceptível que para valores do pixel 554 inferiores a 1, existe uma distinção entre a letra D e F. Podemos observar que para as imagens da letra F, é mais comum o pixel 554 apresentar valores inferiores a 1 e para as imagens da letra D, é mais comum o pixel 554 apresentar valores superiores a 1.
+O erro que se encontra na classificação das imagens pelo pixel 554 é devido à existência de algumas imagens da letra F que têm valores superiores a 1. Isso é visível através do gráfico de bigodes representado seguidamente, em que existe vários outliers para a letra F.
 
-```{r}
+```{r echo=FALSE}
 boxplot(as.matrix(filtered_train_data[,554:554]) ~ character_labels,
         col=c("#FF9966", "#996633"), 
         las=2,
@@ -133,43 +221,470 @@ boxplot(as.matrix(filtered_train_data[,554:554]) ~ character_labels,
 title(main = "Distribuição dos Valores dos Pixels para 'D' e 'F'", cex.main = 0.7)
 ```
 
-```{r}
-par(mfrow = c(1, 2))
+Seguidamente estão representados os gráficos das densidades para os valores do pixel 604, para a letra D, cujo gráfico está representado a roxo, e para a letra F, cujo gráfico está representado a vermelho. A linha a tracejado indica quando o valor do pixel é igual a 1. Para o pixel 604, a diferença entre as duas letras não é tão perceptível como acontecia para o pixel 554.
 
-ggplot(combined_data, aes(x = V640, fill = group)) +
+```{r echo=FALSE}
+ggplot(combined_data, aes(x = V604, fill = group)) +
   geom_density(alpha = 0.6) +
   scale_fill_manual(values = c("blue", "red")) +
   theme_minimal() +
-  labs(x = "Valor do Pixel", y = "Densidade", title = "Gráfico de Dendidade para o Pixel 554") +
+  labs(x = "Valor do Pixel", y = "Densidade", title = "Gráfico de Dendidade para o Pixel 604") +
   guides(fill = guide_legend(title = "Grupo")) + 
   geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
-  coord_cartesian(ylim = c(0, 0.25))
+  coord_cartesian(ylim = c(0, 0.10))
 
-#-----------------
 
-ggplot(combined_data, aes(x = V496, fill = group)) +
-  geom_density(alpha = 0.6) +
-  scale_fill_manual(values = c("blue", "red")) +
-  theme_minimal() +
-  labs(x = "Valor do Pixel", y = "Densidade", title = "Gráfico de Dendidade para o Pixel 554") +
-  guides(fill = guide_legend(title = "Grupo")) + 
-  geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
-  coord_cartesian(ylim = c(0, 0.1))
+
 ```
 
-```{r}
+A letra F tem maior parte dos valores do pixel 604 perto do número 1, no entanto, existem várias imagens cujo valor do pixel encontram-se acima de 1 .Para a letra D, os valores estão dispersos igualmente pelo intervalo $[0,255]$. Isto é também visível através do gráfico de bigodes seguinte.
+
+```{r echo=FALSE}
+boxplot(as.matrix(filtered_train_data[,604:604]) ~ character_labels,
+        col=c("#FF9966", "#996633"), 
+        las=2,
+        xlab="Letras",
+        ylab="Intensidade dos pixeis",
+        #outline=FALSE
+)
+title(main = "Distribuição dos Valores dos Pixels para 'D' e 'F'", cex.main = 0.7)
+```
+
+Através dos gráficos apresentados para os pixeis 554 e 604, é possível observar que ambos os pixeis conseguem classificar as imagens, no entanto, o pixel 554 consegue fazê-lo com uma maior precisão, devido à menor sobreposição entre os valores que o pixel pode tomar nas diferentes imagens.
+
+# Exercício 2
+
+De modo a averiguar se os quatro pixeis selecionados pela árvore são pixeis que conseguem, por si só, classificar as imagens, foi determinada a distância entre a intensidade dos pixeis das imagens com a letra D e com a letra F. O resultado está apresentado na figura seguinte.
+
+```{r message=FALSE, warning=FALSE}
+# Distâncias entre pontos
 sums_D <- colSums(filtered_train_data[filtered_train_data$V1 == label_D, -1])
 sums_F <- colSums(filtered_train_data[filtered_train_data$V1 == label_F, -1])
 
 differences <- abs(sums_D - sums_F)
+db <- rbind(filtered_train_data, differences)
 
-
-matrix_dim <- 28
-differences_matrix <- matrix(differences, nrow = matrix_dim, ncol = matrix_dim)
-
-
-image(1:28, 1:28, differences_matrix,
-      col = cm.colors(20),
-      xlab = "Pixeis", ylab = "Pixeis",
-      main = "Diferença dos Valores dos Pixeis")
+plotfigure(4801, db)
 ```
+
+Para perceber o valor da distância dos pixeis que, previamente, foram seleccionados pela árvore de decisão, foram alterados os valores dos mesmos na imagem seguinte.
+
+```{r message=FALSE, warning=FALSE}
+differences[554] = 50
+differences[640] = 260000
+differences[496] = 50
+differences[604] = 50
+
+db <- rbind(filtered_train_data, differences)
+plotfigure(4801, db)
+```
+
+Os pixeis 554, 640 e 496 encontram-se na zona em que os pixeis apresentam uma diferença grande de intensidades da letra D para a letra F. No entanto, o pixel 604 já se encontra na zona em que não existe uma diferença nas intensidades tão significativa nas duas letras. Isto pode ser devido à grande quantidade de outliers que o pixel tem na imagem da letra F, como foi mostrado anteriormente.
+
+Apesar do pixel 604 não apresentar grande diferença na sua intensidade da letra D para a letra F, retirar o pixel da árvore resultaria num modelo com um erro de validação maior e uma menor precisão na classificação das letras. Assim, os pixeis que determinaram com uma probabilidade elevada se na imagem está representada a letra D ou a letra F serão os pixeis 554, 640, 496 e 604.
+
+Serão, então, utilizados apenas estes pixeis para classificar as imagens, pelo que a nova amostra de treino apenas terá em conta esses mesmo pixeis.
+
+```{r}
+# Pixeis escolhidps
+decision_nodes <-
+  modelo_arvore$frame[modelo_arvore$frame$var != "<leaf>",]
+
+pixels_to_keep <- c("V1", decision_nodes$var)
+
+# Nova base de dados com os pixeis escolhidos
+filtered_train_data_pixels_to_keep <- filtered_train_data[, pixels_to_keep]
+filtered_test_data_pixels_to_keep <- filtered_test_data[, pixels_to_keep]
+```
+
+# Exercício 3
+
+```{r}
+hist(filtered_data_13$V554)
+hist(filtered_data_15$V554)
+hist(filtered_data_13$V640)
+hist(filtered_data_15$V640)
+hist(filtered_data_13$V496)
+hist(filtered_data_15$V496)
+hist(filtered_data_13$V604)
+hist(filtered_data_15$V604)
+
+```
+
+# Exercício 4
+
+O DBSCAN é o método não paramétrico utilizado para identificar agrupamentos de dados ("clusters", em inglês). Neste trabalho irão ser comparados os pixeis seleccionados anteriormente, dois a dois, com o intuito de perceber se os pixeis tomam valores específicos de intensidades para cada letra. Pelo que o objetivo é detetar dois agrupamentos de modo a que seja possível distinguir as duas letras. !!!!!!!!!!!
+
+Para aplicar o método DBSCAN, são definidos dois parâmetros: "eps" que define a distância máxima entre dois pontos para que sejam considerados estar na mesma vizinhança, e "minPts", que corresponde ao número de pontos que devem estar à distância máxima, definida anteriormente, para ser considerado um cluster.
+
+Para uma distância máxima igual a 5 e um número de pontos mínimo contido nesta distância ao ponto igual a 5, o DBSCAN encontra 58 agrupamentos de dados, representados na figura seguinte, e 1696 pontos de ruído, que são pontos que não agrupados em nenhum grupo. Dado que apenas se tem duas letras, é necessário alterar os parâmetros do método.
+
+```{r}
+filtered_train_data_dbscan <- filtered_train_data_pixels_to_keep
+
+train_data_DF <- filtered_train_data_dbscan[, -1]
+
+#DBSCAN
+dbscan_result <- dbscan(train_data_DF, eps = 5, minPts = 5)
+print(dbscan_result)
+
+#Gráfico com os clusters
+pairs(train_data_DF, col = dbscan_result$cluster + 1L)
+```
+
+Foi aumentado primeiramente o número mínimo de pontos, para 30 pontos, e mantém-se a distância de 5. Para estes parâmetros foram encontrados 14 clusters e 2568 pontos de ruído. Seguidamente foi aumentada a distância para 30 e manteve-se o número mínimo de pontos em 5 pontos. Nesta situação encontrou-se 12 clusters e 277 pontos de ruído.
+
+```{r}
+dbscan_result <- dbscan(train_data_DF, eps = 5, minPts = 30)
+print(dbscan_result)
+
+par(mfrow = c(1, 2))
+
+pairs(train_data_DF, col = dbscan_result$cluster + 1L)
+
+dbscan_result <- dbscan(train_data_DF, eps = 30, minPts = 5)
+print(dbscan_result)
+
+pairs(train_data_DF, col = dbscan_result$cluster + 1L)
+```
+
+Aumentando os dois parâmetros, foi possível encontrar dois clusters para algumas combinações de pixeis, como mostra a imagem, em que, o primeiro cluster tem 4555 pontos e o segundo tem apenas 64 pontos.
+
+```{r}
+dbscan_result <- dbscan(train_data_DF, eps = 60, minPts = 45)
+print(dbscan_result)
+
+pairs(train_data_DF, col = dbscan_result$cluster + 1L)
+```
+
+Na imagem seguinte está representada a distribuição da intensidade dos pixeis, em que os valores a preto pertencem à letra D e rosa os valores pertencentes à letra F. Comparando com a imagem acima, obtida através do DBSCAN, é possível concluir que o método DBSCAN não permite com rigor diferenciar as duas zonas de intensidades de pixeis. Isto acontece devido ao tipo de pesquisa que o método realiza, agrupando os valores de intensidade por densidade à volta de cada um dos valores. Como o valor das intensidades do pixeis varia na maior parte do intervalo de intensidades, que estes podem tomar, o método DBSCAN não permite distinguir as duas zonas.
+
+```{r}
+pairs(train_data_DF, col = filtered_train_data_dbscan$V1)
+
+```
+
+# Exercício 5
+
+Neste exercício iremos utilizar o algoritmo Naive Bayes para classificar as imagens das letras D e F. O Naive Bayes é um método simples, mas eficaz, que se baseia no teorema de Bayes e na suposição de independência condicional entre as características (pixeis, neste caso).
+
+Antes de aplicar o Naive Bayes, realizou-se o teste de Shapiro-Wilk para verificar a normalidade dos dados dos pixeis selecionados (V554, V640, V496 e V604) e as letras D e F individualmente. A suposição de normalidade não é estritamente necessária para o Naive Bayes, mas pode ser útil para entender a distribuição dos dados e auxiliar na interpretação dos resultados. O teste de Shapiro-Wilk avalia as seguintes hipóteses:
+
+\- Hipótese Nula (H0): Os dados do pixel seguem uma distribuição normal.
+
+\- Hipótese Alternativa (H1): Os dados do pixel não seguem uma distribuição normal.
+
+```{r}
+train_data_nb <- filtered_train_data_pixels_to_keep[, -1]
+train_labels_nb <- as.factor(filtered_train_data_pixels_to_keep$V1)
+
+test_data_nb <- filtered_test_data_pixels_to_keep[, -1]
+test_labels_nb <- as.factor(filtered_test_data_pixels_to_keep$V1)
+
+for (pixel in names(train_data_nb)) {
+  # Filtrar dados para a letra 'D' (label_D = 13)
+  train_data_D <- train_data_nb[train_labels_nb == label_D, ][[pixel]]
+  
+  # Filtrar dados para a letra 'F' (label_F = 15)
+  train_data_F <- train_data_nb[train_labels_nb == label_F, ][[pixel]]
+
+  # Teste de Shapiro-Wilk para a letra 'D'
+  shapiro_result_D <- shapiro.test(train_data_D)
+  cat("Pixel:", pixel, "- Letra D\n")
+  cat("Estatística W:", shapiro_result_D$statistic, "\n")
+  cat("Valor-p:", shapiro_result_D$p.value, "\n\n")
+
+  # Teste de Shapiro-Wilk para a letra 'F'
+  shapiro_result_F <- shapiro.test(train_data_F)
+  cat("Pixel:", pixel, "- Letra F\n")
+  cat("Estatística W:", shapiro_result_F$statistic, "\n")
+  cat("Valor-p:", shapiro_result_F$p.value, "\n\n")
+}
+```
+
+Os resultados do teste de Shapiro-Wilk mostram que, para todos os pixels e em ambas as letras, os valores-p são extremamente pequenos (muito menores que 0.05). Isso indica forte evidência contra a hipótese nula (H0) de que os dados seguem uma distribuição normal. Portanto, podemos concluir que a distribuição dos valores dos pixels, tanto para a letra 'D' quanto para a letra 'F', não é gaussiana em nenhum dos pixels analisados.
+
+Apesar da não normalidade dos dados, ambos os modelos Naive Bayes, paramétrico e não paramétrico, foram treinados utilizando os pixeis selecionados.
+
+```{r}
+# Classificação Naive Bayes Paramétrica (já existente)
+model_nb_parametric <- naive_bayes(train_data_nb, train_labels_nb)
+predictions_nb_parametric <- predict(model_nb_parametric, test_data_nb, type = "class")
+
+# Classificação Naive Bayes Não Paramétrica
+model_nb_nonparametric <- naive_bayes(train_data_nb, train_labels_nb, usekernel = TRUE, kernel = "triangular")
+predictions_nb_nonparametric <- predict(model_nb_nonparametric, test_data_nb, type = "class")
+
+#Tipos de Kernel:
+#gaussian: Kernel Gaussiano (padrão)
+#rectangular: Kernel Retangular (ou Uniforme)
+#triangular: Kernel Triangular
+#epanechnikov: Kernel Epanechnikov
+#biweight: Kernel Biweight (ou Quartic)
+#cosine: Kernel Cosseno
+#optcosine: Kernel Cosseno Otimizado
+
+# Comparação dos Resultados
+cat("\nMatriz de Confusão - Naive Bayes Paramétrico:\n")
+conf_matrix_detailed_parametric <- confusionMatrix(predictions_nb_parametric, test_labels_nb)
+print(conf_matrix_detailed_parametric)
+
+cat("\nMatriz de Confusão - Naive Bayes Não Paramétrico:\n")
+conf_matrix_detailed_nonparametric <- confusionMatrix(predictions_nb_nonparametric, test_labels_nb)
+print(conf_matrix_detailed_nonparametric)
+```
+
+Ambos os modelos presentaram bom desempenho na classificação das letras D e F. O modelo paramétrico, que assume uma distribuição Gaussiana para os dados, obteve uma acurácia de 92.12%, com sensibilidade de 87% e especificidade de 97.25%. Para o modelo não paramétrico, os vários kernels foram testados, pois não existe nenhum kernel cuja distribuição se assemelha à distribuição dos pixeis tendo em conta a classe a que pertencem (ver Exercício 3). O kernel para o qual se obteve uma acurácia mais elevada foi o kernel triangular, em que o modelo ajustado com este kernel tem uma acurácia inferior ao modelo paramétrico, de 87.12%,com sensibilidade de 78% e especificidade de 96.25%.
+
+A boa performance de ambos os modelos Naive Bayes, mesmo com a violação da suposição de normalidade, sugere que ambos foram capazes de capturar padrões relevantes nos dados para a classificação das letras. A alta acurácia, sensibilidade e especificidade em ambos os modelos indicam que a escolha entre o modelo paramétrico e não paramétrico não teve um impacto significativo na capacidade de distinguir entre as letras D e F, utilizando apenas os quatro pixeis selecionados pela árvore de decisão.
+
+É importante ressaltar que, embora o Naive Bayes seja relativamente robusto à violação da suposição de normalidade, especialmente com grandes amostras, a não normalidade dos dados pode afetar a precisão das probabilidades calculadas pelo modelo paramétrico. No entanto, neste caso, a não normalidade não parece ter prejudicado significativamente o desempenho de nenhum dos classificadores.
+
+A utilização do modelo não paramétrico, com um kernel triangular, pode ser uma alternativa interessante quando a suposição de normalidade não é satisfeita, como neste caso. No entanto, a escolha do kernel pode influenciar o desempenho do modelo, e outros kernels poderiam ser explorados em trabalhos futuros.
+
+#Exercício 6
+
+Neste exercício, utilizaremos a Análise de Componentes Principais (PCA) para identificar os pixeis mais importantes na distinção entre as letras 'D' e 'F'. A PCA é uma técnica de redução de dimensão que transforma os dados originais em um novo conjunto de variáveis, chamadas componentes principais, que são combinações lineares das variáveis originais. A primeira componente principal é a que explica a maior parte da variância dos dados e as restantes componentes irão explicando cada vez menos a variabilidade dos dados.
+
+```{r}
+# PCA apenas nos dados de treino
+train_data_pca <- filtered_train_data[, -1]  
+
+# Normalização dos dados
+train_data_pca <- train_data_pca[, apply(train_data_pca, 2, var) != 0]
+train_data_pca_scaled <- scale(train_data_pca)
+
+# Realizar PCA
+pca_model <- prcomp(train_data_pca_scaled)
+
+# Variância explicada por cada componente principal
+explained_variance <- pca_model$sdev^2 / sum(pca_model$sdev^2) * 100
+cat("Variância explicada pela primeira componente principal:", round(explained_variance[1], 2), "%\n")
+
+# Gráfico da variância explicada por cada componente principal
+fviz_eig(pca_model, choice = "variance", ggtheme = theme_minimal(), title = "Variância Explicada por Componente Principal")
+
+# Carregamentos da primeira componente principal
+loadings_pc1 <- pca_model$rotation[, 1]
+
+# Encontrar os 10 pixels com os maiores pesos absolutos na primeira componente principal
+top_10_pixels <- head(sort(abs(loadings_pc1), decreasing = TRUE), 10)
+
+cat("\n10 pixels mais importantes na primeira componente principal:\n")
+print(top_10_pixels)
+```
+
+Analisando a variância explicada, verifica-se que a primeira componente principal explica cerca de 9,55% da variabilidade total dos dados. Sendo esta componente a que mais contribui para explicar a variabilidade, iremos focar a nossa análise nos pesos dos pixeis nesta componente onde serão apresentados os boxplots para os 10 pixeis mais importantes na primeira componente principal, comparando a distribuição dos valores dos pixeis entre as letras 'D' e 'F'.
+
+```{r}
+# Criar um vetor com os nomes dos pixels mais importantes
+all_pixels <- c(names(top_10_pixels))
+
+
+for (pixel_name in all_pixels) {
+  pixel_values <- filtered_train_data[, pixel_name]
+  
+  # Criar um dataframe para o boxplot
+  boxplot_df <- data.frame(
+    Intensidade = pixel_values,
+    Letra = character_labels  # Rótulos das letras ('D' ou 'F')
+  )
+  
+  # Criar e exibir o boxplot
+  boxplot(Intensidade ~ Letra, data = boxplot_df,
+          main = paste("Distribuição da Intensidade do Pixel", pixel_name),
+          xlab = "Letra", ylab = "Intensidade do Pixel",
+          col = c("blue", "red"))
+}
+```
+
+Através da análise dos boxplots, podemos identificar os pixels que melhor diferenciam as letras 'D' e 'F'. Os pixeis com maior separação entre as caixas (interquartile ranges) e menor sobreposição entre as distribuições das letras são considerados os mais importantes para a distinção.
+
+Observando os gráficos, podemos verificar que os pixeis com maior peso na primeira componente principal tendem a ter uma maior diferença na distribuição de intensidades entre as letras 'D' e 'F'. Isso indica que esses pixeis são mais relevantes para a distinção entre as duas letras.
+
+É importante notar que a PCA não indica diretamente quais pixeis são mais importantes para cada letra individualmente, mas sim quais os pixeis que são mais importantes para a distinção entre as duas letras em conjunto.
+
+# Exercício 7
+
+Pretende-se realizar a classificação das imagens utilizando Análise de Componentes Principais (PCA) e Máquinas de Vetores de Suporte (SVM). Primeiramente, aplicou-se a PCA aos dados combinados, escalando-os para garantir que cada componente tem variância unitária. Os dados foram então divididos em conjuntos de treino e teste, com as etiquetas convertidas em fatores. Em seguida, treinou-se um modelo SVM nos dados transformados pela PCA e avaliou-se a sua performance no conjunto de teste. Esta abordagem permitiu reduzir a dimensionalidade dos dados, mantendo a maioria da variância, o que pode melhorar a eficiência computacional e a precisão do modelo de classificação.
+
+```{r}
+# Combina as amostras de treino e teste num só dataset
+filtered_combined_data <- rbind(filtered_train_data, filtered_test_data)
+
+# Remove as colunas com zero variância
+filtered_combined_data <- filtered_combined_data[, apply(filtered_combined_data, 2, var) != 0]
+filtered_combined_data <- data.frame(lapply(filtered_combined_data, as.numeric))
+
+# PCA
+filtered_combined_data_pca <- prcomp(filtered_combined_data, scale. = TRUE)
+
+# Calcula a variância explicada por cada componente principal
+explained_variance <- filtered_combined_data_pca$sdev^2 / sum(filtered_combined_data_pca$sdev^2)
+
+# Calcula a variância explicada cumulativa
+cumulative_variance <- cumsum(explained_variance)
+
+# Número de componentes que explicam pelo menos 80% da variância
+num_components <- which(cumulative_variance >= 0.80)[1]
+
+cat("Número de componentes que explicam pelo menos 80% da variância:", num_components, "\n")
+
+```
+
+Após aplicar a PCA, verificou-se que o número de componentes principais que explicam 80% da variância dos dados corresponde às 70 primeiras componentes principais, pelo que estas serão as variáveis utilizadas para ajustar o modelo de Máquinas de Vetores de Suporte. Assim, os dados serão divididos em treino e teste.
+
+```{r}
+pca_scores <- filtered_combined_data_pca$x
+
+train_indices <- 1:4800
+test_indices <- 4801:5600
+
+# Filtrar os dados PCA para conter apenas os componentes principais selecionados
+filtered_train_data_pca_split <- pca_scores[train_indices, 1:num_components]
+filtered_test_data_pca_split <- pca_scores[test_indices, 1:num_components]
+
+# Amostra de treino e teste para o modelo SMV
+filtered_train_data_split <- filtered_combined_data[train_indices, ]
+filtered_test_data_split <- filtered_combined_data[test_indices, ]
+
+```
+
+Seguidamente, foi aplicado o modelo de Máquinas de Vetores de Suporte aos dados originais e aos dados obtidos através do PCA.
+
+```{r}
+execute_svm <<- function(train_data, train_labels, test_data, test_labels)
+{
+  svm_model <- svm(train_data, train_labels, type = 'C-classification', kernel="polynomial", 
+                   probability = TRUE)
+  predictions <- predict(svm_model, test_data, probability = TRUE)
+  
+  conf_matrix_detailed <- confusionMatrix(predictions, test_labels)
+  print(conf_matrix_detailed)
+  
+  return(attributes(predictions)$probabilities)
+  
+}
+
+
+# Classificaçao sem PCA
+train_data_svm <- filtered_train_data_split[, -1]
+train_labels_svm <- as.factor(filtered_train_data_split$V1)
+
+test_data_svm <- filtered_test_data_split[, -1]
+test_labels_svm <- as.factor(filtered_test_data_split$V1)
+
+cat("\nMatriz de Confusão - Sem PCA:\n")
+result_svm <- execute_svm(train_data_svm, train_labels_svm, test_data_svm, test_labels_svm)
+
+
+# Classificaçao com PCA
+train_data_svm_pca <- filtered_train_data_pca_split
+train_labels_svm_pca <- as.factor(filtered_train_data_split$V1)
+
+test_data_svm_pca <- filtered_test_data_pca_split
+test_labels_svm_pca <- as.factor(filtered_test_data_split$V1)
+
+cat("\nMatriz de Confusão - Com PCA:\n")
+result_svm_pca <- execute_svm(train_data_svm_pca, train_labels_svm_pca, test_data_svm_pca, test_labels_svm_pca)
+```
+
+Para aplicar o modelo SVM foi utilizado um kernel polinomial, pois a fronteira entre as intensidades dos diferentes pixeis da letra D e F não é linear, como se pode observar anteriormente. Aplicado o modelo, os resultados obtidos com a aplicação da PCA e sem a aplicação do PCA resultam numa mesma acurácia, esta bastante perto de 1. A única diferença entre os modelos é a diferença entre a sensibilidade e a especificidade, no entanto, o valor da mesmo não é significativo. Estes resultados estão resumidos nas curvas ROC apresentadas na imagem seguinte.
+
+```{r message=FALSE, warning=FALSE}
+
+# Carregar a biblioteca 'pROC' para utilizar a função 'roc'
+library(pROC)
+
+# Função para obter a probabilidade da classe positiva
+get_prob_positive <- function(predictions, positive_class) {
+  return(predictions[, positive_class])
+}
+
+
+# Curva ROC sem PCA
+roc_svm <- roc(test_labels_svm, get_prob_positive(result_svm, 2))
+
+# Curva ROC com PCA
+roc_svm_pca <- roc(test_labels_svm_pca, get_prob_positive(result_svm_pca, 2))
+
+# Plotar ambas as curvas ROC no mesmo gráfico
+plot(roc_svm, col = "blue", main = "Curvas ROC - SVM com e sem PCA", print.auc.col = "blue", 
+     axes=FALSE,
+     ylab = "Sensibilidade",
+     xlab = "1-Especificidade")
+plot(roc_svm_pca, col = "red", add = TRUE, print.auc.col = "red")
+legend("bottomright", legend = c("Sem PCA", "Com PCA"), col = c("blue", "red"), lwd = 2)
+
+axis(side = 2, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), 
+     labels = expression(0, 0.2, 0.4, 0.6, 0.8, 1), cex.axis = 1, pos=1)
+
+axis(side = 1, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), 
+     labels = expression(1, 0.8, 0.6, 0.4, 0.2, 0),
+     pos=-0.001,
+     cex.axis = 1)
+```
+
+# Exercício 8
+
+Neste exercício, foi realizada uma análise de clustering hierárquico e k-means com base nas primeiras duas componentes principais obtidas através da PCA.
+
+Utilizando, primeiramente, o clustering hierárquico, calculou-se a matriz de distâncias e construiu-se um dendrograma, representado na imagem seguinte, utilizando o método completo de aglomeração. O método de determinação de distâncias entre clusters (linkage) utilizado foi o "complete", pelo que se calcula as diferenças entre as observações dos clusters e guarda-se a maior destas diferenças.
+
+```{r}
+# Primeiras duas componentes principais
+pca_data <- pca_model$x[, 1:2]
+
+# Hierarchical cluster analysis
+hc <- hclust(dist(pca_data), method = "complete")
+
+# Dendograma
+plot(hc, main = "Dendrograma - Clustering Hierárquico", xlab = "", sub = "")
+
+```
+
+Para determinar o número ótimo de clusters, utilizou-se o método da silhueta, que avalia a coesão e separação dos clusters.
+
+```{r}
+# Informação Silhouette
+silhouette_info <- silhouette_scores$data
+
+# Fila com maior valor 
+optimal_row <- silhouette_info[which.max(silhouette_info$y), ]
+
+# Número ótimo de clusters
+optimal_clusters <- optimal_row$clusters
+silhouette_avg <- optimal_row$y
+
+
+optimal_cluster_labels <- cutree(hc, optimal_clusters)
+
+# Calculate silhouette values for the optimal clustering
+sil <- silhouette(optimal_cluster_labels, dist(pca_data))
+fviz_silhouette(sil)
+```
+
+```{r}
+# Perform k-means cluster analysis with the optimal number of clusters
+kmeans_result <- kmeans(pca_data, centers = 2, nstart = 25)
+
+# Calculate silhouette information
+sil <- silhouette(kmeans_result$cluster, dist(pca_data))
+
+# Plot the silhouette graph
+fviz_silhouette(sil)
+
+# Calculate the silhouette score
+print(paste("Optimal Number of Clusters:", optimal_clusters))
+print(paste("Silhouette Score:", silhouette_avg))
+
+# Compare the predicted clusters with the true labels
+comparison_df <-
+  data.frame(True_Labels = filtered_test_data$V1,
+             Predicted_Clusters = kmeans_result$cluster[1:nrow(filtered_test_data)])
+print(head(comparison_df, 20))
+```
+
+O número ótimo de clusters foi então utilizado para realizar a análise de k-means, e a qualidade dos clusters foi avaliada através do gráfico de silhueta. Finalmente, compararam-se os clusters preditos com as etiquetas verdadeiras, permitindo verificar a eficácia do método de clustering em diferenciar as letras D e F.
+
+Os resultados da análise de clustering hierárquico e k-means revelaram que a utilização das duas primeiras componentes principais da PCA foi eficaz para agrupar as letras D e F. O método da silhueta indicou que o número ótimo de clusters era quatro, com uma diferença mínima comparada a dois clusters. A aplicação do k-means com este número de clusters resultou em uma boa separação dos dados. Os gráficos de silhueta mostraram valores altos, indicando que os clusters formados eram coesos e bem separados. A comparação dos clusters preditos com as etiquetas verdadeiras revelou uma correspondência significativa, demonstrando a precisão e a utilidade da abordagem de clustering para este conjunto de dados. A possibilidade de escolher quatro clusters, com uma diferença mínima nos resultados quando comparado com dois clusters, evidencia a flexibilidade do método em representar a estrutura dos dados.

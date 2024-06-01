@@ -78,6 +78,8 @@ filtered_train_data <-
 filtered_test_data <-
   test_data[test_data$V1 %in% c(label_D, label_F),]
 
+result <- shapiro.test()
+
 # ***** QUESTION 1 *****
 
 # Create a decision tree on the training data set to obtain the most important
