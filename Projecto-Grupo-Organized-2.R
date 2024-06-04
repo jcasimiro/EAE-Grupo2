@@ -343,6 +343,37 @@ hc <- hclust(dist(pca_data), method = "complete")
 # Plot the dendrogram
 plot(hc, main = "Dendrograma - Clustering Hierárquico", xlab = "", sub = "")
 
+k_values <- 1:4  # Test different numbers of clusters (adjust as needed)
+hc_clusters <- lapply(k_values, function(k) cutree(hc, k = k))
+
+# 2. Calculate silhouette scores for each cluster solution
+silhouette_scores <- sapply(hc_clusters, function(clusters) {
+  mean(silhouette(clusters, dist(pca_data))[, 1]) 
+})
+
+# 3. Create a dataframe for visualization
+sil_df <- data.frame(
+  k = k_values,
+  silhouette = silhouette_scores
+)
+
+# 4. Visualize silhouette scores
+ggplot(sil_df, aes(x = k, y = silhouette)) +
+  geom_line() +
+  geom_point() +  # Add points to highlight each k value
+  labs(x = "Number of Clusters", y = "Average Silhouette Width")
+
+hc_clusters <- cutree(hc, k = 2)
+
+# 3. Create Comparison Data Frame
+comparison_df_hc <- data.frame(
+  True_Labels = filtered_test_data$V1,
+  Predicted_Clusters = hc_clusters 
+)
+
+# 4. Print the Comparison
+print(head(comparison_df_hc, 20))
+
 # Calculate the optimal number of clusters using the silhouette method
 silhouette_scores <-
   fviz_nbclust(
